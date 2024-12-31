@@ -1,0 +1,499 @@
+" vim: filetype=vifm :
+" Sample configuration file for vifm (last updated: 9 September, 2020)
+" You can edit this file by hand.
+" The " character at the beginning of a line comments out the line.
+" Blank lines are ignored.
+" The basic format for each item is shown with an example.
+
+" ------------------------------------------------------------------------------
+
+" 各コンテキストでファイルを編集する際に使用されるコマンドです。デフォルトはvimです。
+" ElvisやVileなどの他のviクローンを使用する場合は、この設定を変更する必要があります。
+
+set vicmd=nvim
+
+" set vicmd=elvis\ -G\ termcap
+" set vicmd=vile
+
+" vifmがファイル操作を独自に行うようにします（標準的なユーティリティ`cp`などに依存しません）。
+" `cp`を使用する方法は一般的で普遍的ですが、大量のファイルを処理する際に非常に遅く、
+" 進行状況の測定もサポートしていません。
+
+set syscalls
+
+" ゴミ箱ディレクトリ
+" ddまたは:dで削除したファイルはデフォルトでゴミ箱ディレクトリに移動します。
+" これを変更すると、ファイルを削除して新しい場所に貼り付ける機能が利用できなくなります。
+" vifmに慣れるまでこの設定を変更しないことをお勧めします。
+
+set trash
+
+" ディレクトリ履歴に保存する数を指定します。
+
+set history=100
+
+" lやEnterでシンボリックリンクを自動的に解決します。
+
+set nofollowlinks
+
+" 部分的に入力したコマンドを実行できるようにします（
+" 例: :!Te は :!Terminal や :!Te<tab> の省略形として実行可能）。
+
+" set fastrun
+
+" テキスト内の（バージョン）番号を自然な順序でソートします。
+
+set sortnumbers
+
+" 元に戻せる操作の最大数を設定します。
+
+set undolevels=100
+
+" Vim形式のヘルプファイルを使用します（ハイライトや「ハイパーリンク」を含む）。
+" プレーンテキストのヘルプファイルを使用する場合はnovimhelpを設定してください。
+
+set vimhelp
+
+" Enter、l、または右矢印キーを押したときに実行可能ファイルを実行するかどうかを設定します。
+
+set norunexec
+
+" 使用するカラースキームのリスト（端末でサポートされている最初のものを選択）。
+
+
+colorscheme Default-256 Default
+
+" ファイルリストでの時刻表示フォーマット。
+" 例: TIME_STAMP_FORMAT=%m/%d-%H:%M
+" 詳細はman dateまたはman strftimeを参照してください。
+
+set timefmt=%m/%d\ %H:%M
+
+" コマンドラインモードでタブ補完の一致リストを表示します。
+
+set wildmenu
+
+" 一致リストを説明付きでポップアップ形式で表示します。
+
+set wildstyle=popup
+
+" 通常モード、ビジュアルモード、ビューなどでキー、マーク、レジスタの候補を表示します。
+
+set suggestoptions=normal,visual,view,otherpane,keys,marks,registers
+
+" 検索パターンに大文字が含まれない場合は、大文字小文字を区別しないで検索します。
+
+set ignorecase
+set smartcase
+
+" 検索結果を自動的にハイライトしません。
+
+set nohlsearch
+
+" インクリメンタルサーチを使用します（入力中に検索を実行）。
+
+set incsearch
+
+" カーソルとリストの上下端の間に少しスペースを確保します。
+
+set scrolloff=4
+
+" 遅いファイルシステムへのリクエストを減らします。
+
+if !has('win')
+    set slowfs=curlftpfs
+endif
+
+" カスタムステータスラインの設定。
+
+set statusline="  Hint: %z%= %A %10u:%-7g %15s %20d  "
+
+" ------------------------------------------------------------------------------
+
+" :mark mark /フル/ディレクトリ/パス [ファイル名]
+
+mark b ~/bin/
+mark h ~/
+
+" ------------------------------------------------------------------------------
+
+" :com[mand][!] command_name action
+" 以下のマクロがコマンドで使用可能です。
+" %a - ユーザー引数に置換されます。
+" %c - カーソル下の現在のファイル。
+" %C - 他のディレクトリでのカーソル下のファイル。
+" %f - 現在選択されているファイル、またはファイル群。
+" %F - 他のディレクトリで選択されているファイル、またはファイル群。
+" %b - %fと%Fの両方を含む。
+" %d - 現在のディレクトリ名。
+" %D - 他のウィンドウのディレクトリ名。
+" %m - コマンドをメニューウィンドウで実行します。
+
+command! df df -h %m 2> /dev/null
+command! diff vim -d %f %F
+command! zip zip -r %f.zip %f
+command! run !! ./%f
+command! make !!make %a
+command! mkcd :mkdir %a | cd %a
+command! vgrep vim "+grep %a"
+command! reload :write | restart full
+
+" ------------------------------------------------------------------------------
+" ファイルタイプは、ファイル拡張子に対してデフォルトで使用されるプログラムを指定します。
+" :filetype パターン1,パターン2 デフォルトプログラム,プログラム2
+" :fileviewer パターン1,パターン2 consoleviewer
+" このファイルタイプに関連付けられた他のプログラムには、:file コマンドを使用してアクセスできます。
+" コマンドマクロ（%f, %F, %d, %D など）をコマンドで使用できます。
+" %a マクロは無視されます。%を使用する場合は、%% を入力する必要があります。
+
+" 自動化された FUSE マウントのためには、次の形式のいずれかで :filetype を使用して拡張子を登録する必要があります：
+
+" :filetype extensions FUSE_MOUNT|some_mount_command
+" %SOURCE_FILE と %DESTINATION_DIR 変数を使用します。これらは実行時に vifm によって設定されます。
+" サンプル行の例：
+" :filetype .zip,.jar,.war,.ear FUSE_MOUNT|fuse-zip %SOURCE_FILE %DESTINATION_DIR
+
+" :filetype extensions FUSE_MOUNT2|some_mount_command
+" %PARAM と %DESTINATION_DIR 変数を使用します。これらも実行時に vifm によって設定されます。
+" サンプル行の例：
+" :filetype *.ssh FUSE_MOUNT2|sshfs %PARAM %DESTINATION_DIR
+" %PARAM の値は、ファイルの最初の行（全体の行）から設定されます。
+" SshMount ファイルタイプの例：最初の行は root@127.0.0.1:/ など。
+
+" また、FUSE プログラムを実行する前に画面をクリアしたい場合は %CLEAR を追加できます。
+
+" Pdf
+filextype {*.pdf},<application/pdf> zathura %c %i &, apvlv %c, xpdf %c
+fileviewer {*.pdf},<application/pdf> pdftotext -nopgbrk %c -
+
+" PostScript
+filextype {*.ps,*.eps,*.ps.gz},<application/postscript>
+        \ {View in zathura}
+        \ zathura %f,
+        \ {View in gv}
+        \ gv %c %i &,
+
+" Djvu
+filextype {*.djvu},<image/vnd.djvu>
+        \ {View in zathura}
+        \ zathura %f,
+        \ {View in apvlv}
+        \ apvlv %f,
+
+" Audio
+filetype {*.wav,*.mp3,*.flac,*.m4a,*.wma,*.ape,*.ac3,*.og[agx],*.spx,*.opus},
+        \<audio/*>
+       \ {Play using ffplay}
+       \ ffplay -nodisp -autoexit %c,
+       \ {Play using MPlayer}
+       \ mplayer %f,
+fileviewer {*.mp3},<audio/mpeg> mp3info
+fileviewer {*.flac},<audio/flac> soxi
+
+" Video
+filextype {*.avi,*.mp4,*.wmv,*.dat,*.3gp,*.ogv,*.mkv,*.mpg,*.mpeg,*.vob,
+          \*.fl[icv],*.m2v,*.mov,*.webm,*.ts,*.mts,*.m4v,*.r[am],*.qt,*.divx,
+          \*.as[fx]},
+         \<video/*>
+        \ {View using ffplay}
+        \ ffplay -fs -autoexit %f,
+        \ {View using Dragon}
+        \ dragon %f:p,
+        \ {View using mplayer}
+        \ mplayer %f,
+fileviewer {*.avi,*.mp4,*.wmv,*.dat,*.3gp,*.ogv,*.mkv,*.mpg,*.mpeg,*.vob,
+           \*.fl[icv],*.m2v,*.mov,*.webm,*.ts,*.mts,*.m4v,*.r[am],*.qt,*.divx,
+           \*.as[fx]},
+          \<video/*>
+         \ ffprobe -pretty %c 2>&1
+
+" Web
+filextype {*.html,*.htm},<text/html>
+        \ {Open with dwb}
+        \ dwb %f %i &,
+        \ {Open with firefox}
+        \ firefox %f &,
+        \ {Open with uzbl}
+        \ uzbl-browser %f %i &,
+filetype {*.html,*.htm},<text/html> links, lynx
+
+" Object
+filetype {*.o},<application/x-object> nm %f | less
+
+" Man page
+filetype {*.[1-8]},<text/troff> man ./%c
+fileviewer {*.[1-8]},<text/troff> man ./%c | col -b
+
+" Images
+filextype {*.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm},<image/*>
+        \ {View in sxiv}
+        \ sxiv %f,
+        \ {View in gpicview}
+        \ gpicview %c,
+        \ {View in shotwell}
+        \ shotwell,
+fileviewer {*.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm},<image/*>
+         \ identify %f
+
+" OpenRaster
+filextype *.ora
+        \ {Edit in MyPaint}
+        \ mypaint %f,
+
+" Mindmap
+filextype *.vym
+        \ {Open with VYM}
+        \ vym %f &,
+
+" MD5
+filetype *.md5
+       \ {Check MD5 hash sum}
+       \ md5sum -c %f %S,
+
+" SHA1
+filetype *.sha1
+       \ {Check SHA1 hash sum}
+       \ sha1sum -c %f %S,
+
+" SHA256
+filetype *.sha256
+       \ {Check SHA256 hash sum}
+       \ sha256sum -c %f %S,
+
+" SHA512
+filetype *.sha512
+       \ {Check SHA512 hash sum}
+       \ sha512sum -c %f %S,
+
+" GPG signature
+filetype {*.asc},<application/pgp-signature>
+       \ {Check signature}
+       \ !!gpg --verify %c,
+
+" Torrent
+filetype {*.torrent},<application/x-bittorrent> ktorrent %f &
+fileviewer {*.torrent},<application/x-bittorrent> dumptorrent -v %c
+
+" FuseZipMount
+filetype {*.zip,*.jar,*.war,*.ear,*.oxt,*.apkg},
+        \<application/zip,application/java-archive>
+       \ {Mount with fuse-zip}
+       \ FUSE_MOUNT|fuse-zip %SOURCE_FILE %DESTINATION_DIR,
+       \ {View contents}
+       \ zip -sf %c | less,
+       \ {Extract here}
+       \ tar -xf %c,
+fileviewer *.zip,*.jar,*.war,*.ear,*.oxt zip -sf %c
+
+" ArchiveMount
+filetype {*.tar,*.tar.bz2,*.tbz2,*.tgz,*.tar.gz,*.tar.xz,*.txz},
+        \<application/x-tar>
+       \ {Mount with archivemount}
+       \ FUSE_MOUNT|archivemount %SOURCE_FILE %DESTINATION_DIR,
+fileviewer *.tgz,*.tar.gz tar -tzf %c
+fileviewer *.tar.bz2,*.tbz2 tar -tjf %c
+fileviewer *.tar.txz,*.txz xz --list %c
+fileviewer {*.tar},<application/x-tar> tar -tf %c
+
+" Rar2FsMount and rar archives
+filetype {*.rar},<application/x-rar>
+       \ {Mount with rar2fs}
+       \ FUSE_MOUNT|rar2fs %SOURCE_FILE %DESTINATION_DIR,
+fileviewer {*.rar},<application/x-rar> unrar v %c
+
+" IsoMount
+filetype {*.iso},<application/x-iso9660-image>
+       \ {Mount with fuseiso}
+       \ FUSE_MOUNT|fuseiso %SOURCE_FILE %DESTINATION_DIR,
+
+" SshMount
+filetype *.ssh
+       \ {Mount with sshfs}
+       \ FUSE_MOUNT2|sshfs %PARAM %DESTINATION_DIR %FOREGROUND,
+
+" FtpMount
+filetype *.ftp
+       \ {Mount with curlftpfs}
+       \ FUSE_MOUNT2|curlftpfs -o ftp_port=-,,disable_eprt %PARAM %DESTINATION_DIR %FOREGROUND,
+
+" Fuse7z and 7z archives
+filetype {*.7z},<application/x-7z-compressed>
+       \ {Mount with fuse-7z}
+       \ FUSE_MOUNT|fuse-7z %SOURCE_FILE %DESTINATION_DIR,
+fileviewer {*.7z},<application/x-7z-compressed> 7z l %c
+
+" Office files
+filextype {*.odt,*.doc,*.docx,*.xls,*.xlsx,*.odp,*.pptx,*.ppt},
+         \<application/vnd.openxmlformats-officedocument.*,
+          \application/msword,
+          \application/vnd.ms-excel>
+        \ libreoffice %f &
+fileviewer {*.doc},<application/msword> catdoc %c
+fileviewer {*.docx},
+          \<application/
+           \vnd.openxmlformats-officedocument.wordprocessingml.document>
+         \ docx2txt.pl %f -
+
+" TuDu files
+filetype *.tudu tudu -f %c
+
+" Qt projects
+filextype *.pro qtcreator %f &
+
+" Directories
+filextype */
+        \ {View in thunar}
+        \ Thunar %f &,
+
+" プレビューでの構文ハイライト
+"
+" 一部の拡張子に対して明示的にハイライトの種類を設定する
+"
+" 256色端末
+" fileviewer *.[ch],*.[ch]pp highlight -O xterm256 -s dante --syntax c %c
+" fileviewer Makefile,Makefile.* highlight -O xterm256 -s dante --syntax make %c
+"
+" 16色端末
+" fileviewer *.c,*.h highlight -O ansi -s dante %c
+"
+" または自動検出に任せる
+"
+" fileviewer *[^/] pygmentize -O style=monokai -f console256 -g
+
+" ターミナルで画像を表示する
+"
+" fileviewer *.jpg,*.png shellpic %c
+
+" すべてのその他のファイルをデフォルトのシステムプログラムで開く
+" （または、上記のすべての :file[x]type コマンドを削除して、システム全体の
+" 設定に干渉しないようにすることも可能）。デフォルトでは、未知のファイルは
+" 'vi[x]cmd' で開かれますが、以下の行のいずれかをコメント解除することで
+" 未知のファイルタイプに対して 'vi[x]cmd' 設定を無視することができます。
+" Unixの場合:
+" filetype * xdg-open
+" macOSの場合:
+" filetype * open
+" Windowsの場合:
+" filetype * start, explorer
+
+" ------------------------------------------------------------------------------
+
+" vifmセッション間で自動的に保存される内容を指定します。
+" 最後に訪問したディレクトリを記憶させたくない場合は "savedirs" の値を削除してください。
+
+
+set vifminfo=dhistory,savedirs,chistory,state,tui,shistory,
+    \phistory,fhistory,dirstack,registers,bookmarks,bmarks
+
+" ------------------------------------------------------------------------------
+
+" 両方のパネルの設定例。
+
+" 表示列をカスタマイズ（切り捨てられたファイル名に省略記号を付ける）。
+"
+" set viewcolumns=-{name}..,6{}.
+
+" ビルドおよび一時ファイルをフィルタリング。
+"
+" filter! {*.lo,*.o,*.d,*.class,*.pyc,*.pyo,.*~}
+
+" ------------------------------------------------------------------------------
+" マッピングの例。
+
+" 現在のディレクトリでシェルを開始。
+
+nnoremap s :shell<cr>
+
+" ソートダイアログを表示する
+nnoremap S :sort<cr>
+
+" プレビューウィンドウの表示/非表示を切り替える
+nnoremap w :view<cr>
+vnoremap w :view<cr>gv
+
+" 既存の gvim インスタンスでファイルを開く
+nnoremap o :!gvim --remote-tab-silent %f<cr>
+
+" 新しい gvim インスタンスでファイルを開く
+nnoremap O :!gvim %f<cr>
+
+" ファイルをデフォルトプログラムでバックグラウンドで開く
+nnoremap gb :file &<cr>l
+
+" システムクリップボードとの連携
+if has('win')
+    " 現在のディレクトリパスをスラッシュ形式で Windows のクリップボードにコピー
+    nnoremap yp :!echo %"d:gs!\!/! %i | clip<cr>
+    " 現在のファイルパスをスラッシュ形式で Windows のクリップボードにコピー
+    nnoremap yf :!echo %"c:gs!\!/! %i | clip<cr>
+elseif executable('xclip')
+    " 現在のディレクトリパスをクリップボードにコピー
+    nnoremap yd :!echo %d | xclip %i<cr>
+    " 現在のファイルパスをクリップボードにコピー
+    nnoremap yf :!echo %c:p | xclip %i<cr>
+elseif executable('xsel')
+    " 現在のディレクトリパスをプライマリおよび選択用クリップボードにコピー
+    nnoremap yd :!echo -n %d | xsel --input --primary %i &&
+                \ echo -n %d | xsel --clipboard --input %i<cr>
+    " 現在のファイルパスをプライマリおよび選択用クリップボードにコピー
+    nnoremap yf :!echo -n %c:p | xsel --input --primary %i &&
+                \ echo -n %c:p | xsel --clipboard --input %i<cr>
+endif
+
+" 迅速な名前変更用マッピング
+nnoremap I cw<c-a>
+nnoremap cc cw<c-u>
+nnoremap A cw
+
+" 現在のディレクトリでコンソールを開く
+nnoremap ,t :!xterm &<cr>
+
+" vifmrc を編集するためのエディタを開き、編集後に設定を適用
+nnoremap ,c :write | edit $MYVIFMRC | restart full<cr>
+
+" gvim を開いて vifmrc を編集
+nnoremap ,C :!gvim --remote-tab-silent $MYVIFMRC &<cr>
+
+" ,w キーでラップ設定を切り替える
+nnoremap ,w :set wrap!<cr>
+
+" 標準的な2ペインファイルマネージャー用マッピング例
+nnoremap <f3> :!less %f<cr>
+nnoremap <f4> :edit<cr>
+nnoremap <f5> :copy<cr>
+nnoremap <f6> :move<cr>
+nnoremap <f7> :mkdir<space>
+nnoremap <f8> :delete<cr>
+
+" Midnight Commander 風のマッピング
+" 現在のディレクトリを他のペインに開く
+nnoremap <a-i> :sync<cr>
+" カーソル下のディレクトリを他のペインに開く
+nnoremap <a-o> :sync %c<cr>
+" ペインを入れ替える
+nnoremap <c-u> <c-w>x
+
+" ------------------------------------------------------------------------------
+
+" 様々なカスタマイズ例
+
+" grep の代わりに ag (the silver searcher) を使用する
+"
+" set grepprg='ag --line-numbers %i %a %s'
+
+" 実行可能ファイルを探す追加の場所を設定する
+"
+" let $PATH = $HOME.'/bin/fuse:'.$PATH
+
+" 特定のショートカットを無効化する
+"
+" nnoremap <left> <nop>
+
+" 現在のインスタンスの IPC 名を環境変数としてエクスポートし、
+" 後でそのインスタンスと通信するために使用する。
+"
+" これは vifm 内から実行されるシェルスクリプトで使用できます。
+" 例えば、次のようにして利用します:
+"     vifm --server-name "$VIFM_SERVER_NAME" --remote +"cd '$PWD'"
+
+" let $VIFM_SERVER_NAME = v:servername
