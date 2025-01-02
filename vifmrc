@@ -56,12 +56,13 @@ set vimhelp
 
 " Enter、l、または右矢印キーを押したときに実行可能ファイルを実行するかどうかを設定します。
 
-set norunexec
+set runexec
 
 " 使用するカラースキームのリスト（端末でサポートされている最初のものを選択）。
 
 
-colorscheme Default-256 Default
+" colorscheme Default-256 Default
+colorscheme gruvbox
 
 " ファイルリストでの時刻表示フォーマット。
 " 例: TIME_STAMP_FORMAT=%m/%d-%H:%M
@@ -86,9 +87,9 @@ set suggestoptions=normal,visual,view,otherpane,keys,marks,registers
 set ignorecase
 set smartcase
 
-" 検索結果を自動的にハイライトしません。
+" 検索結果を自動的にハイライトします。
 
-set nohlsearch
+set hlsearch
 
 " インクリメンタルサーチを使用します（入力中に検索を実行）。
 
@@ -135,7 +136,7 @@ command! zip zip -r %f.zip %f
 command! run !! ./%f
 command! make !!make %a
 command! mkcd :mkdir %a | cd %a
-command! vgrep vim "+grep %a"
+command! vgrep nvim "+grep %a"
 command! reload :write | restart full
 
 " ------------------------------------------------------------------------------
@@ -164,21 +165,6 @@ command! reload :write | restart full
 
 " Pdf
 filextype {*.pdf},<application/pdf> zathura %c %i &, apvlv %c, xpdf %c
-fileviewer {*.pdf},<application/pdf> pdftotext -nopgbrk %c -
-
-" PostScript
-filextype {*.ps,*.eps,*.ps.gz},<application/postscript>
-        \ {View in zathura}
-        \ zathura %f,
-        \ {View in gv}
-        \ gv %c %i &,
-
-" Djvu
-filextype {*.djvu},<image/vnd.djvu>
-        \ {View in zathura}
-        \ zathura %f,
-        \ {View in apvlv}
-        \ apvlv %f,
 
 " Audio
 filetype {*.wav,*.mp3,*.flac,*.m4a,*.wma,*.ape,*.ac3,*.og[agx],*.spx,*.opus},
@@ -186,9 +172,13 @@ filetype {*.wav,*.mp3,*.flac,*.m4a,*.wma,*.ape,*.ac3,*.og[agx],*.spx,*.opus},
        \ {Play using ffplay}
        \ ffplay -nodisp -autoexit %c,
        \ {Play using MPlayer}
-       \ mplayer %f,
+       \ mplayer %f
+
 fileviewer {*.mp3},<audio/mpeg> mp3info
 fileviewer {*.flac},<audio/flac> soxi
+
+" LINK 
+filextype {*.lnk},<application/x-ms-shortcut> cmd /c start "" "%c"
 
 " Video
 filextype {*.avi,*.mp4,*.wmv,*.dat,*.3gp,*.ogv,*.mkv,*.mpg,*.mpeg,*.vob,
@@ -206,6 +196,7 @@ fileviewer {*.avi,*.mp4,*.wmv,*.dat,*.3gp,*.ogv,*.mkv,*.mpg,*.mpeg,*.vob,
            \*.as[fx]},
           \<video/*>
          \ ffprobe -pretty %c 2>&1
+
 
 " Web
 filextype {*.html,*.htm},<text/html>
@@ -226,14 +217,15 @@ fileviewer {*.[1-8]},<text/troff> man ./%c | col -b
 
 " Images
 filextype {*.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm},<image/*>
-        \ {View in sxiv}
-        \ sxiv %f,
+        \ {View in ImgClipper}
+        \ ImgClipper %f,
         \ {View in gpicview}
         \ gpicview %c,
         \ {View in shotwell}
         \ shotwell,
+
 fileviewer {*.bmp,*.jpg,*.jpeg,*.png,*.gif,*.xpm},<image/*>
-         \ identify %f
+         \ ImgClipper %f
 
 " OpenRaster
 filextype *.ora
@@ -400,6 +392,7 @@ set vifminfo=dhistory,savedirs,chistory,state,tui,shistory,
 " ------------------------------------------------------------------------------
 " マッピングの例。
 
+
 " 現在のディレクトリでシェルを開始。
 
 nnoremap s :shell<cr>
@@ -412,10 +405,10 @@ nnoremap w :view<cr>
 vnoremap w :view<cr>gv
 
 " 既存の gvim インスタンスでファイルを開く
-nnoremap o :!gvim --remote-tab-silent %f<cr>
+nnoremap o :!nvim --remote-tab-silent %f<cr>
 
 " 新しい gvim インスタンスでファイルを開く
-nnoremap O :!gvim %f<cr>
+nnoremap O :!nvim %f<cr>
 
 " ファイルをデフォルトプログラムでバックグラウンドで開く
 nnoremap gb :file &<cr>l
@@ -441,18 +434,17 @@ elseif executable('xsel')
 endif
 
 " 迅速な名前変更用マッピング
-nnoremap I cw<c-a>
-nnoremap cc cw<c-u>
+nnoremap R cw<c-u>
 nnoremap A cw
 
 " 現在のディレクトリでコンソールを開く
-nnoremap ,t :!xterm &<cr>
+nnoremap <c-c> :!cmd .<cr>
 
 " vifmrc を編集するためのエディタを開き、編集後に設定を適用
 nnoremap ,c :write | edit $MYVIFMRC | restart full<cr>
 
 " gvim を開いて vifmrc を編集
-nnoremap ,C :!gvim --remote-tab-silent $MYVIFMRC &<cr>
+nnoremap ,C :!nvim --remote-tab-silent $MYVIFMRC &<cr>
 
 " ,w キーでラップ設定を切り替える
 nnoremap ,w :set wrap!<cr>
